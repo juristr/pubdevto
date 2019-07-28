@@ -48,9 +48,18 @@ function cleanedContent(body: string): string {
   body = body.replace(/{{.*<.*intro.*>.*}}/, '');
   body = body.replace(/{{.*<\/.*intro.*>.*}}/, '');
   body = body.replace(/{{.*<.*postad.*>.*}}/, '');
+  body = body.replace(/{{.*<.*toc.*>.*}}/, '');
 
   // replace images
   body = body.replace(/{{.*<.*figure url="(.*)" size=".*".*>.*}}/g, '![]($1)');
+  body = body.replace(
+    /<figure.*>[\s\r].*src="(.*)">[\s\r]*<figcaption>.*<\/figcaption>[\s\r]*<\/figure>/g,
+    '![]($1)'
+  );
+  body = body.replace(
+    /<figure.*>[\s\r].*src="(.*)">[\s\r]*<\/figure>/g,
+    '![]($1)'
+  );
 
   // replace vimeo
   body = body.replace(/{{.*vimeo\s*([0-9]*).*}}/g, '{% vimeo $1 %}');
@@ -60,6 +69,12 @@ function cleanedContent(body: string): string {
 
   // replace stackblitz
   body = body.replace(/{{.*stackblitz uid="(.*)">}}/g, '{% stackblitz $1 %}');
+
+  // replace article-link
+  body = body.replace(
+    /{{.*<.*article-link[\s\S\r]*.*url="(.*)"[\s\S\r]*.*title="(.*)"[\s\S\r]*.*>}}/gm,
+    '> Check out my related post about "[$2]($1)"'
+  );
 
   // replace Egghead embeds
 
@@ -87,10 +102,12 @@ async function main(command: CommandOptions) {
     cover_image: `https://juristr.com${orgFrontMatter['image']}`
   };
 
-  if (orgFrontMatter['tags'].length > 4) {
-    frontMatter['tags'] = orgFrontMatter['tags'].splice(0, 4);
-  } else {
-    frontMatter['tags'] = orgFrontMatter['tags'];
+  if (orgFrontMatter['tags']) {
+    if (orgFrontMatter['tags'].length > 4) {
+      frontMatter['tags'] = orgFrontMatter['tags'].splice(0, 4);
+    } else {
+      frontMatter['tags'] = orgFrontMatter['tags'];
+    }
   }
 
   let cleanContent = cleanedContent(postContent.content);
